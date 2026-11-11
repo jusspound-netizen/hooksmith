@@ -35,10 +35,11 @@ policies:
 - **Schema translation**: the same policy compiles to the correct native format for each harness.
 - **Ask downgrade**: `decision: ask` becomes `deny` on Codex, because Codex has no ask for `PreToolUse`.
 - **Backups**: every config file is backed up before overwrite.
+- **Honest caveat**: the guard scripts read `TOOL_INPUT` from the environment. Tested against the documented schemas; if your harness passes tool input differently, adjust the scripts in `.hooksmith/` after compiling.
 
 ## What it does not do
 
-- No runtime bridge. The hooks are self-contained Python one-liners.
+- No runtime bridge. The hooks are self-contained Python scripts written to `.hooksmith/`.
 - No network calls.
 - No dependencies beyond Python 3.9+ and stdlib.
 
