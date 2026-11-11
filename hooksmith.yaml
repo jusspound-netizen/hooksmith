@@ -1,0 +1,21 @@
+# hooksmith.yaml - write your agent guardrails once, compile to any harness
+#
+# Each policy has:
+#   name      - a short identifier
+#   match     - which tool to intercept (regex on tool name)
+#   block_if  - the condition that triggers the block
+#   decision  - deny (default) or ask
+#   reason    - the message shown when blocked
+
+policies:
+  - name: block-destructive-shell
+    match: Bash
+    block_if: command =~ /rm\s+-rf|git\s+reset\s+--hard|git\s+push\s+--force/
+    decision: deny
+    reason: "Destructive command blocked by hooksmith"
+
+  - name: scope-guard
+    match: Write|Edit
+    block_if: file_path not in scope.md
+    decision: ask
+    reason: "File outside declared scope - confirm?"
