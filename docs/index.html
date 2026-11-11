@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hooksmith — Write agent guardrails once</title>
+<meta name="description" content="Write agent guardrails once in YAML. Compile to native hooks for Claude Code, Cursor, and Codex.">
+<style>
+:root { --bg: #0d1117; --surface: #161b22; --border: #30363d; --text: #c9d1d9; --muted: #8b949e; --accent: #58a6ff; --green: #3fb950; --red: #f85149; --yellow: #d29922; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; line-height: 1.6; }
+.container { max-width: 960px; margin: 0 auto; padding: 0 24px; }
+header { border-bottom: 1px solid var(--border); padding: 20px 0; }
+header .container { display: flex; justify-content: space-between; align-items: center; }
+.logo { font-family: "SF Mono", Consolas, monospace; font-weight: 600; font-size: 18px; color: var(--text); text-decoration: none; }
+.logo span { color: var(--accent); }
+nav a { color: var(--muted); text-decoration: none; margin-left: 24px; font-size: 14px; }
+nav a:hover { color: var(--text); }
+.hero { padding: 80px 0 60px; text-align: center; }
+.hero h1 { font-size: 44px; font-weight: 700; letter-spacing: -1px; margin-bottom: 16px; }
+.hero p { font-size: 18px; color: var(--muted); max-width: 640px; margin: 0 auto 32px; }
+.btn { display: inline-block; padding: 12px 24px; background: var(--accent); color: var(--bg); border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 15px; }
+.btn:hover { opacity: 0.9; }
+.btn.secondary { background: transparent; color: var(--text); border: 1px solid var(--border); margin-left: 12px; }
+section { padding: 60px 0; border-top: 1px solid var(--border); }
+h2 { font-size: 28px; font-weight: 600; margin-bottom: 24px; }
+h2 span { color: var(--accent); }
+p { color: var(--muted); margin-bottom: 16px; }
+table { width: 100%; border-collapse: collapse; margin: 24px 0; font-size: 14px; }
+th, td { text-align: left; padding: 12px 16px; border: 1px solid var(--border); }
+th { background: var(--surface); font-weight: 600; color: var(--text); }
+td { color: var(--muted); }
+code { font-family: "SF Mono", Consolas, monospace; background: var(--surface); padding: 2px 6px; border-radius: 4px; font-size: 13px; color: var(--accent); }
+pre { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 20px; overflow-x: auto; margin: 20px 0; }
+pre code { background: transparent; padding: 0; color: var(--text); font-size: 13px; line-height: 1.6; }
+.steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-top: 32px; }
+.step { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 24px; }
+.step .num { font-family: "SF Mono", Consolas, monospace; font-size: 14px; color: var(--accent); margin-bottom: 8px; }
+.step h3 { font-size: 16px; margin-bottom: 8px; }
+.step p { font-size: 14px; margin: 0; }
+.status-table td:first-child { color: var(--text); }
+.yes { color: var(--green); }
+.no { color: var(--yellow); }
+footer { border-top: 1px solid var(--border); padding: 32px 0; text-align: center; color: var(--muted); font-size: 14px; }
+footer a { color: var(--accent); text-decoration: none; }
+@media (max-width: 768px) { .hero h1 { font-size: 32px; } .steps { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<header><div class="container"><a class="logo" href="/">hook<span>smith</span></a><nav><a href="#how">How it works</a><a href="#status">Status</a><a href="https://github.com/jusspound-netizen/hooksmith">GitHub</a></nav></div></header>
+<section class="hero"><div class="container"><h1>Write agent guardrails once.</h1><p>Compile to native hooks for Claude Code, Cursor, and Codex — handling the schema differences so you don't have to.</p><a class="btn" href="https://github.com/jusspound-netizen/hooksmith">View on GitHub</a><a class="btn secondary" href="#how">How it works</a></div></section>
+<section id="problem"><div class="container"><h2>The problem: <span>three incompatible schemas</span></h2><p>A <code>PreToolUse</code> hook that works in Claude Code will not work in Cursor or Codex without translation. The config paths, event names, and block mechanisms are all different.</p>
+<table><thead><tr><th>Field</th><th>Claude Code</th><th>Cursor</th><th>Codex</th></tr></thead><tbody>
+<tr><td>Config file</td><td><code>.claude/settings.json</code></td><td><code>.cursor/hooks.json</code></td><td><code>.codex/hooks.json</code></td></tr>
+<tr><td>Event name</td><td><code>PreToolUse</code></td><td><code>preToolUse</code></td><td><code>PreToolUse</code></td></tr>
+<tr><td>Block mechanism</td><td><code>permissionDecision: deny</code></td><td><code>permission: deny</code></td><td><code>permissionDecision: deny</code></td></tr>
+<tr><td>Ask support</td><td class="yes">supported</td><td class="yes">supported</td><td class="no">not supported</td></tr>
+</tbody></table></div></section>
+<section id="how"><div class="container"><h2>How it works</h2><div class="steps">
+<div class="step"><div class="num">01</div><h3>Write a policy</h3><p>One YAML file describes every guardrail. No JavaScript, no TypeScript, no per-harness config.</p></div>
+<div class="step"><div class="num">02</div><h3>Compile</h3><p>One command translates the policy to the correct native format for each harness. Guard scripts are generated in <code>.hooksmith/</code>.</p></div>
+<div class="step"><div class="num">03</div><h3>Run</h3><p>The hooks fire natively. No runtime bridge, no daemon, no network calls.</p></div>
+</div>
+<pre><code># hooksmith.yaml
+policies:
+  - name: block-destructive-shell
+    match: Bash
+    block_if: command =~ /rm\\s+-rf|git\\s+reset\\s+--hard/
+    decision: deny
+    reason: "Destructive command blocked by hooksmith"
+
+# Compile to every harness
+python scripts/compile.py --project /path/to/project --harness all</code></pre>
+</div></section>
+<section id="status"><div class="container"><h2>Verification status</h2><p>Hooksmith is honest about what is proven and what is not.</p>
+<table class="status-table"><thead><tr><th>Claim</th><th>Status</th></tr></thead><tbody>
+<tr><td>Compiles YAML to Claude Code hook config</td><td class="yes">✅ tested</td></tr>
+<tr><td>Generates guard scripts with correct regex</td><td class="yes">✅ tested</td></tr>
+<tr><td>Guard blocks destructive command (exit 2)</td><td class="yes">✅ tested</td></tr>
+<tr><td>Guard allows safe command (exit 0)</td><td class="yes">✅ tested</td></tr>
+<tr><td>Reads stdin in documented Claude Code format</td><td class="yes">✅ tested</td></tr>
+<tr><td>Works in a live Claude Code session</td><td class="no">⏳ not yet verified</td></tr>
+<tr><td>Cursor and Codex schema output</td><td class="no">⏳ written, not tested against a live harness</td></tr>
+</tbody></table></div></section>
+<footer><div class="container"><p>Hooksmith is MIT licensed. <a href="https://github.com/jusspound-netizen/hooksmith">GitHub</a> · <a href="https://www.agensi.io/r/CONTEXTBRIDGE?to=/creators/context-bridge">More tools</a></p></div></footer>
+</body>
+</html>
